@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432"
+  web:
+    restart: always
+    build: .
+    command: bash -c "python manage.py makemigrations &&
+                    python manage.py migrate &&
+                    python manage.py createsuperuser --no-input || true &&
+                    pytest authorization/tests &&
+                    pytest diagnostics/tests &&
+                    python manage.py runserver 0.0.0.0:80"
+    volumes:
+      - .:/code
+    ports:
+      - "80:80"
+    depends_on:
+      - db
+    environment:
+      - DJANGO_SUPERUSER_PASSWORD=adminAdm1n
+      - DJANGO_SUPERUSER_USERNAME=admin
